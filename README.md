@@ -79,3 +79,13 @@ python -m src.cli "As,Ad" 6 800
 
 This will issue a request to `SOLVER_BASE_URL/v1/preflop/evaluate` using the configured credentials
 and print the raw solver statistics, which is useful for verifying connectivity and credentials.
+
+## Continuous Integration (GitHub Actions)
+
+- Workflow file: `.github/workflows/ci.yml`
+- Triggers on pushes/PRs to `main`, installs dependencies, and runs `python -m unittest src.test_app`
+- Secrets you can set in **Repository Settings → Secrets and variables → Actions**:
+  - `SOLVER_BASE_URL` *(optional)* – CI falls back to `http://solver.mock` when unset
+  - `SOLVER_API_KEY`, `SOLVER_API_KEY_HEADER`, `SOLVER_API_KEY_SCHEME` *(optional)* for authenticated solvers
+- To extend with real solver tests, provide the actual endpoint/credentials in secrets and add a
+  step invoking `python -m src.cli` or live `/preflop` requests.
