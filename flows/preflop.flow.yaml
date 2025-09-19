@@ -1,0 +1,23 @@
+name: "preflop-minimal-flow"
+description: "Planner → SpecWriter → Coder，串行执行并做轻量校验"
+steps:
+  - id: plan
+    run: "agents/planner.agent.md"
+    input: "目标=preflop 评估 Web/HTTP 服务 MVP；约束=本周可运行"
+    expects:
+      - path: "docs/PLAN.md"
+        must_include:
+          - "Goals"
+          - "Milestones"
+  - id: spec
+    run: "agents/specwriter.agent.md"
+    expects:
+      - path: "specs/SPEC.md"
+        must_include:
+          - "API"
+          - "验收"
+  - id: code
+    run: "agents/coder.agent.md"
+    expects:
+      - path: "README.md"
+      - path: "src/app.py"

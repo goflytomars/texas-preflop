@@ -2,3 +2,7 @@
 .env.*
 *.key
 *.pem
+.venv/
+uvicorn.log
+__pycache__/
+.pytest_cache/
