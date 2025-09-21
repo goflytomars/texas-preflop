@@ -14,7 +14,7 @@ falling back to a Chen 公式近似 when the solver is unavailable.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install fastapi uvicorn httpx
+pip install -r requirements.txt
 export SOLVER_BASE_URL="http://localhost:9000"
 # export SOLVER_API_KEY="your-token"
 # export SOLVER_API_KEY_HEADER="X-API-Key"
@@ -89,3 +89,14 @@ and print the raw solver statistics, which is useful for verifying connectivity 
   - `SOLVER_API_KEY`, `SOLVER_API_KEY_HEADER`, `SOLVER_API_KEY_SCHEME` *(optional)* for authenticated solvers
 - To extend with real solver tests, provide the actual endpoint/credentials in secrets and add a
   step invoking `python -m src.cli` or live `/preflop` requests.
+
+## Deploying on Render
+
+1. 登录 [Render](https://dashboard.render.com/)，选择 **New → Web Service**，并连接本仓库（分支 `main`）。
+2. 在 *Environment* 选择 **Python 3**，填写：
+   - **Build Command** `pip install -r requirements.txt`
+   - **Start Command** `uvicorn src.app:app --host 0.0.0.0 --port $PORT`
+3. 在 Render 的 **Environment Variables** 中配置：
+   - `SOLVER_BASE_URL`（以及 `SOLVER_API_KEY` 等，如果需要）。
+4. 点击 **Create Web Service**，Render 会自动构建并部署；完成后可通过提供的 URL 访问 `/preflop`。
+5. 若日志显示 solver 超时，确认环境变量指向正确的求解器，或暂时允许 fallback（默认启用）。
