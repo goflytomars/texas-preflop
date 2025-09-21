@@ -76,6 +76,7 @@ Texas Preflop 现在进入“真实求解器”阶段，需要用精确计算替
 ### 5.1 求解器接口
 - **调用方式**：HTTP POST `SOLVER_BASE_URL + /v1/preflop/evaluate`。
 - **鉴权**：若设置 `SOLVER_API_KEY`，服务需在请求头 `SOLVER_API_KEY_HEADER`（默认 `Authorization`）中发送 `SOLVER_API_KEY_SCHEME` + 空格 + token；当 `SOLVER_API_KEY_SCHEME` 为空字符串时直接发送原始 token。
+- **默认行为**：若未配置 `SOLVER_BASE_URL`，服务回退至 `http://solver.mock` 并始终使用 Chen fallback（方便开发/预览环境）。
 - **请求**
 ```json
 {
@@ -143,7 +144,7 @@ Texas Preflop 现在进入“真实求解器”阶段，需要用精确计算替
 - **性能**：
   - 平均响应时间 < `timeoutMs + 50ms`。
   - 并发 50 req/s 不降级。
-- **可配置性**：`SOLVER_BASE_URL`、`DEFAULT_TIMEOUT_MS`、`CHEN_FALLBACK_ENABLED` 需支持环境变量覆盖。
+- **可配置性**：`SOLVER_BASE_URL`、`DEFAULT_TIMEOUT_MS`、`CHEN_FALLBACK_ENABLED` 需支持环境变量覆盖；`SOLVER_BASE_URL` 缺省时默认指向 `http://solver.mock`。
 - **安全**：若存在 `SOLVER_API_KEY`，启动时需验证配置并确保不会在日志中打印明文 token。
 - **恢复**：求解器恢复后自动切换至正常模式，不需人工操作。
 

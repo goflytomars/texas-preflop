@@ -7,7 +7,7 @@ falling back to a Chen 公式近似 when the solver is unavailable.
 ## Requirements
 - Python 3.10+
 - Dependencies installed via `pip install -r requirements.txt` *(see quick start below)*
-- Environment variable `SOLVER_BASE_URL` pointing to the solver service (e.g. `http://localhost:9000`)
+- Environment variable `SOLVER_BASE_URL` pointing to the solver service (e.g. `http://localhost:9000`); defaults to `http://solver.mock` when unset (Chen fallback only)
 - Optional: `SOLVER_API_KEY`, `SOLVER_API_KEY_HEADER` (default `Authorization`), `SOLVER_API_KEY_SCHEME` (default `Bearer`) if authentication is required
 
 ## Quick Start

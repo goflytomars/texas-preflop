@@ -41,9 +41,7 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
-        base_url = os.getenv("SOLVER_BASE_URL")
-        if not base_url:
-            raise RuntimeError("SOLVER_BASE_URL environment variable must be set")
+        base_url = os.getenv("SOLVER_BASE_URL") or "http://solver.mock"
         default_timeout = int(os.getenv("DEFAULT_TIMEOUT_MS", "800"))
         chen_fallback = os.getenv("CHEN_FALLBACK_ENABLED", "true").lower() != "false"
         api_key = os.getenv("SOLVER_API_KEY")
