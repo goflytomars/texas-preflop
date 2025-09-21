@@ -100,3 +100,13 @@ and print the raw solver statistics, which is useful for verifying connectivity 
    - `SOLVER_BASE_URL`（以及 `SOLVER_API_KEY` 等，如果需要）。
 4. 点击 **Create Web Service**，Render 会自动构建并部署；完成后可通过提供的 URL 访问 `/preflop`。
 5. 若日志显示 solver 超时，确认环境变量指向正确的求解器，或暂时允许 fallback（默认启用）。
+
+### 部署真实求解器（solver_service）
+
+1. 在同一个仓库下的 `solver_service/` 提供了 Monte Carlo 版求解器。
+2. 在 Render 新建一个 Web Service：
+   - **Build Command** `pip install -r solver_service/requirements.txt`
+   - **Start Command** `uvicorn solver_service.app:app --host 0.0.0.0 --port $PORT`
+3. 部署完成后记下 Render 分配的 URL（例如 `https://preflop-solver.onrender.com`）。
+4. 回到主服务（Texas Preflop API）的环境变量配置，将 `SOLVER_BASE_URL` 设置为该 URL（无需结尾 `/v1/...`）。
+5. 保存后主服务会自动重启，此时访问 `/preflop` 将直接调用真实求解器，`method` 字段会显示 `solver:v1`。
