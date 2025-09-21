@@ -4,9 +4,9 @@ from __future__ import annotations
 import math
 import random
 import time
+from collections import Counter
+from itertools import combinations
 from typing import List, Optional
-
-import eval7
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, conlist, validator
 
@@ -16,6 +16,7 @@ app = FastAPI(title="Texas Preflop Solver", version="solver-mc-0.1")
 ALL_RANKS = "23456789TJQKA"
 ALL_SUITS = "cdhs"
 ALL_CARDS = [r + s for r in ALL_RANKS for s in ALL_SUITS]
+RANK_TO_VALUE = {rank: index + 2 for index, rank in enumerate(ALL_RANKS)}
 
 
 class SolverRequest(BaseModel):
@@ -125,27 +126,25 @@ def _iterations_for_budget(max_time_ms: int, players: int) -> int:
 
 
 def _simulate(hero_cards: List[str], players: int, iterations: int) -> dict[str, float]:
-    hero_eval_cards = [eval7.Card(card) for card in hero_cards]
     deck_cards = [card for card in ALL_CARDS if card not in hero_cards]
-    deck_template = [eval7.Card(card) for card in deck_cards]
 
     wins = 0
     ties = 0
 
     for _ in range(iterations):
-        deck = deck_template.copy()
+        deck = deck_cards.copy()
         random.shuffle(deck)
 
         board = deck[:5]
         index = 5
 
-        hero_value = eval7.evaluate(hero_eval_cards + board)
+        hero_value = _best_hand_value(hero_cards + board)
 
         opponent_values = []
         for _opponent in range(players - 1):
             opp_cards = deck[index : index + 2]
             index += 2
-            opponent_values.append(eval7.evaluate(opp_cards + board))
+            opponent_values.append(_best_hand_value(opp_cards + board))
 
         max_opponent = max(opponent_values) if opponent_values else -1
 
@@ -164,7 +163,6 @@ def _simulate(hero_cards: List[str], players: int, iterations: int) -> dict[str,
 
 
 def _estimate_ev(win_prob: float, loss_prob: float, players: int) -> float:
-    # Simplified EV estimation: assume pot of players big blinds, hero invests 1 bb.
     pot = players
     expected_win = win_prob * pot
     expected_loss = loss_prob
@@ -188,6 +186,74 @@ def _confidence(win_prob: float, iterations: int, duration_ms: int) -> float:
     if duration_ms >= 0.9 * (iterations / 80):
         confidence = min(0.99, confidence + 0.02)
     return confidence
+
+
+def _best_hand_value(cards: List[str]) -> tuple:
+    best = None
+    for combo in combinations(cards, 5):
+        value = _hand_value(combo)
+        if best is None or value > best:
+            best = value
+    return best or (0, )
+
+
+def _hand_value(cards: tuple[str, ...]) -> tuple:
+    ranks = [RANK_TO_VALUE[card[0]] for card in cards]
+    suits = [card[1] for card in cards]
+
+    rank_counter = Counter(ranks)
+    counts = sorted(rank_counter.items(), key=lambda item: (item[1], item[0]), reverse=True)
+    ordered_ranks = sorted(ranks, reverse=True)
+
+    is_flush = len(set(suits)) == 1
+    straight_high = _straight_high(ranks)
+
+    if is_flush and straight_high is not None:
+        return (8, straight_high)
+
+    if counts[0][1] == 4:
+        four_rank = counts[0][0]
+        kicker = max(rank for rank in ranks if rank != four_rank)
+        return (7, four_rank, kicker)
+
+    if counts[0][1] == 3 and len(counts) > 1 and counts[1][1] >= 2:
+        return (6, counts[0][0], counts[1][0])
+
+    if is_flush:
+        return (5, ) + tuple(ordered_ranks)
+
+    if straight_high is not None:
+        return (4, straight_high)
+
+    if counts[0][1] == 3:
+        kickers = sorted((rank for rank in ranks if rank != counts[0][0]), reverse=True)
+        return (3, counts[0][0]) + tuple(kickers)
+
+    if counts[0][1] == 2 and len(counts) > 1 and counts[1][1] == 2:
+        high_pair = counts[0][0]
+        low_pair = counts[1][0]
+        kicker = max(rank for rank in ranks if rank not in {high_pair, low_pair})
+        ordered_pairs = tuple(sorted([high_pair, low_pair], reverse=True))
+        return (2, ) + ordered_pairs + (kicker, )
+
+    if counts[0][1] == 2:
+        pair_rank = counts[0][0]
+        kickers = sorted((rank for rank in ranks if rank != pair_rank), reverse=True)
+        return (1, pair_rank) + tuple(kickers)
+
+    return (0, ) + tuple(ordered_ranks)
+
+
+def _straight_high(ranks: List[int]) -> Optional[int]:
+    unique = sorted(set(ranks))
+    if 14 in unique:
+        unique.append(1)
+    unique = sorted(unique)
+    for i in range(len(unique) - 4):
+        window = unique[i : i + 5]
+        if window == list(range(window[0], window[0] + 5)):
+            return window[-1] if window[-1] != 1 else 5
+    return None
 
 
 if __name__ == "__main__":  # pragma: no cover
