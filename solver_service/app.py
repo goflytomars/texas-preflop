@@ -123,9 +123,9 @@ def _build_hero_hand(ranks: List[str], suits: List[str]) -> List[str]:
 
 
 def _iterations_for_budget(max_time_ms: int, players: int) -> int:
-    base = max_time_ms * 60
+    base = max_time_ms * 30
     scaled = int(base / max(players, 2))
-    return int(max(3000, min(50000, scaled)))
+    return int(max(2000, min(20000, scaled)))
 
 
 def _simulate(
@@ -165,10 +165,9 @@ def _simulate(
             ties += 1.0 / (tied + 1)
 
         completed += 1
-        if completed % 100 == 0:
-            elapsed_ms = (time.perf_counter() - start) * 1000
-            if elapsed_ms >= max_time_ms:
-                break
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        if elapsed_ms >= max_time_ms:
+            break
 
     total = float(max(completed, 1))
     duration_ms = int((time.perf_counter() - start) * 1000)
