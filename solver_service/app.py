@@ -81,19 +81,22 @@ async def evaluate(request: SolverRequest) -> SolverResponse:
         raise HTTPException(status_code=400, detail={"error": "invalid_cards", "detail": str(exc)}) from exc
 
     iterations = _iterations_for_budget(request.max_time_ms, request.players)
-    start = time.perf_counter()
     try:
-        result = _simulate(hero_cards, request.players, iterations)
+        result, actual_iterations, duration_ms = _simulate(
+            hero_cards,
+            request.players,
+            iterations,
+            request.max_time_ms,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail={"error": "invalid_cards", "detail": str(exc)}) from exc
-    duration_ms = int((time.perf_counter() - start) * 1000)
 
     win_prob = result["win"]
     tie_prob = result["tie"]
     loss_prob = max(0.0, 1.0 - win_prob - tie_prob)
     ev_bb = _estimate_ev(win_prob, loss_prob, request.players)
     recommendation = _recommendation(win_prob)
-    confidence = _confidence(win_prob, iterations, duration_ms)
+    confidence = _confidence(win_prob, actual_iterations, duration_ms, request.max_time_ms)
 
     return SolverResponse(
         win_prob=round(win_prob, 4),
@@ -102,7 +105,7 @@ async def evaluate(request: SolverRequest) -> SolverResponse:
         ev_bb=round(ev_bb, 3),
         recommendation=recommendation,
         confidence=round(confidence, 3),
-        iterations=iterations,
+        iterations=actual_iterations,
         solver_version="solver-mc-0.1",
     )
 
@@ -120,16 +123,23 @@ def _build_hero_hand(ranks: List[str], suits: List[str]) -> List[str]:
 
 
 def _iterations_for_budget(max_time_ms: int, players: int) -> int:
-    base = max_time_ms * 80  # heuristic: ~80 sims per ms under typical load
-    scaled = int(base / players)
-    return int(max(5000, min(60000, scaled)))
+    base = max_time_ms * 60
+    scaled = int(base / max(players, 2))
+    return int(max(3000, min(50000, scaled)))
 
 
-def _simulate(hero_cards: List[str], players: int, iterations: int) -> dict[str, float]:
+def _simulate(
+    hero_cards: List[str],
+    players: int,
+    iterations: int,
+    max_time_ms: int,
+) -> tuple[dict[str, float], int, int]:
     deck_cards = [card for card in ALL_CARDS if card not in hero_cards]
 
     wins = 0
     ties = 0
+    completed = 0
+    start = time.perf_counter()
 
     for _ in range(iterations):
         deck = deck_cards.copy()
@@ -151,15 +161,25 @@ def _simulate(hero_cards: List[str], players: int, iterations: int) -> dict[str,
         if hero_value > max_opponent:
             wins += 1
         elif hero_value == max_opponent:
-            # Count ties when hero matches the best opponent hand
             tied = opponent_values.count(hero_value)
             ties += 1.0 / (tied + 1)
 
-    total = float(iterations)
-    return {
-        "win": wins / total,
-        "tie": ties / total,
-    }
+        completed += 1
+        if completed % 100 == 0:
+            elapsed_ms = (time.perf_counter() - start) * 1000
+            if elapsed_ms >= max_time_ms:
+                break
+
+    total = float(max(completed, 1))
+    duration_ms = int((time.perf_counter() - start) * 1000)
+    return (
+        {
+            "win": wins / total,
+            "tie": ties / total,
+        },
+        completed,
+        duration_ms,
+    )
 
 
 def _estimate_ev(win_prob: float, loss_prob: float, players: int) -> float:
@@ -177,13 +197,13 @@ def _recommendation(win_prob: float) -> str:
     return "fold"
 
 
-def _confidence(win_prob: float, iterations: int, duration_ms: int) -> float:
+def _confidence(win_prob: float, iterations: int, duration_ms: int, max_time_ms: int) -> float:
     variance = win_prob * (1 - win_prob)
     std_error = math.sqrt(variance / max(iterations, 1))
     confidence = 1 - std_error * 3  # 3-sigma interval
     confidence = max(0.5, min(0.99, confidence))
     # Slight boost if runtime hit the max duration
-    if duration_ms >= 0.9 * (iterations / 80):
+    if duration_ms >= 0.9 * max_time_ms:
         confidence = min(0.99, confidence + 0.02)
     return confidence
 
