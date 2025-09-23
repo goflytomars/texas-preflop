@@ -72,21 +72,23 @@ const cardRain = useMemo<DeckCard[]>(() => {
   const deck: DeckCard[] = [];
   const columns = RANKS.length;
   const rows = SUITS.length;
-  const horizontalSpacing = 100 / columns;
-  const verticalSpacing = 100 / rows;
+  const totalCards = columns * rows;
+  const duration = 44;
+  const delayStep = duration / totalCards;
 
   RANKS.forEach((rank, column) => {
     SUITS.forEach((suit, row) => {
-      const left = column * horizontalSpacing + horizontalSpacing / 2 - 10;
-      const delay = (column * 2 + row * 4) % 60;
-      const duration = 42;
+      const index = row * columns + column;
+      const base = ((column + 0.5) / columns) * 100;
+      const offset = (row - (rows - 1) / 2) * (100 / columns) * 0.35;
+      const left = base + offset - 12;
       deck.push({
         id: `${rank}${suit.value}`,
         rank,
         suitSymbol: suit.symbol,
         colorClass: suit.color,
         left,
-        delay,
+        delay: index * delayStep,
         duration
       });
     });
