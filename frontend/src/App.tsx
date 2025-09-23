@@ -70,12 +70,16 @@ type DeckCard = {
 
 const cardRain = useMemo<DeckCard[]>(() => {
   const deck: DeckCard[] = [];
-  const baseSpacing = 100 / RANKS.length;
-  RANKS.forEach((rank, rankIndex) => {
-    SUITS.forEach((suit, suitIndex) => {
-      const left = rankIndex * baseSpacing + suitIndex * (baseSpacing / 4) - 8;
-      const delay = (rankIndex * 2 + suitIndex * 3) % 36;
-      const duration = 36;
+  const columns = RANKS.length;
+  const rows = SUITS.length;
+  const horizontalSpacing = 100 / columns;
+  const verticalSpacing = 100 / rows;
+
+  RANKS.forEach((rank, column) => {
+    SUITS.forEach((suit, row) => {
+      const left = column * horizontalSpacing + horizontalSpacing / 2 - 10;
+      const delay = (column * 2 + row * 4) % 60;
+      const duration = 42;
       deck.push({
         id: `${rank}${suit.value}`,
         rank,
