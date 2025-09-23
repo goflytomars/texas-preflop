@@ -22,34 +22,19 @@ interface EvaluationResponse {
 }
 
 const SUITS = [
-  { label: '♠️ 黑桃 (s)', value: 's' },
-  { label: '♥️ 红桃 (h)', value: 'h' },
-  { label: '♦️ 方片 (d)', value: 'd' },
-  { label: '♣️ 梅花 (c)', value: 'c' }
+  { label: '♠️ 黑桃', value: 's' },
+  { label: '♥️ 红桃', value: 'h' },
+  { label: '♦️ 方片', value: 'd' },
+  { label: '♣️ 梅花', value: 'c' }
 ];
 
 const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
-
-const PRESET_HANDS: Array<{ label: string; cards: [string, string] }> = [
-  { label: 'AA (As,Ad)', cards: ['As', 'Ad'] },
-  { label: 'KK (Kh,Kc)', cards: ['Kh', 'Kc'] },
-  { label: 'AKs (As,Ks)', cards: ['As', 'Ks'] },
-  { label: 'AJs (Ad,Jd)', cards: ['Ad', 'Jd'] },
-  { label: '76s (7h,6h)', cards: ['7h', '6h'] },
-  { label: '72o (7h,2c)', cards: ['7h', '2c'] }
-];
-
-const modes = [
-  { value: 'solver', label: 'Solver' },
-  { value: 'heuristic', label: 'Heuristic (Chen formula)' }
-];
 
 export default function App() {
   const [card1Rank, setCard1Rank] = useState('A');
   const [card1Suit, setCard1Suit] = useState('s');
   const [card2Rank, setCard2Rank] = useState('A');
   const [card2Suit, setCard2Suit] = useState('d');
-  const [mode, setMode] = useState('solver');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EvaluationResponse | null>(null);
@@ -57,6 +42,7 @@ export default function App() {
   const cardCombo = useMemo(() => `${card1Rank}${card1Suit},${card2Rank}${card2Suit}`, [card1Rank, card1Suit, card2Rank, card2Suit]);
   const players = 6;
   const timeoutMs = 800;
+  const mode = 'solver';
 
   const formattedApiUrl = useMemo(() => {
     const url = new URL('/preflop', API_BASE_URL);
@@ -97,14 +83,6 @@ export default function App() {
     }
   };
 
-  const handlePreset = (cards: [string, string]) => {
-    const [first, second] = cards;
-    setCard1Rank(first[0]);
-    setCard1Suit(first[1]);
-    setCard2Rank(second[0]);
-    setCard2Suit(second[1]);
-  };
-
   const clearResult = () => {
     setResult(null);
     setError(null);
@@ -135,10 +113,10 @@ export default function App() {
   return (
     <div className="container">
       <header>
-        <h1>Texas Preflop Evaluator</h1>
-        <p className="description">
-          输入你的德州扑克起手牌和桌面玩家数，实时获取基于求解器的胜率、期望收益与策略建议。
-        </p>
+        <h1>
+          Born to be the <span className="highlight-king">King</span> of Teas
+        </h1>
+        <p className="subtitle">I’ll help you keep winning—winning all the way to Mars.</p>
       </header>
 
       <form onSubmit={handleSubmit}>
@@ -149,30 +127,6 @@ export default function App() {
               {renderCardSelector('第一张牌', card1Rank, card1Suit, setCard1Rank, setCard1Suit)}
               {renderCardSelector('第二张牌', card2Rank, card2Suit, setCard2Rank, setCard2Suit)}
             </div>
-            <div className="preset-actions" style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {PRESET_HANDS.map((preset) => (
-                <button
-                  type="button"
-                  key={preset.label}
-                  className="secondary"
-                  style={{ padding: '0.45rem 0.9rem', fontSize: '0.85rem' }}
-                  onClick={() => handlePreset(preset.cards)}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="mode">求解模式</label>
-            <select id="mode" value={mode} onChange={(event) => setMode(event.target.value)}>
-              {modes.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
