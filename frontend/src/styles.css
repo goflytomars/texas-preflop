@@ -190,10 +190,11 @@ label {
   padding: 0.7rem 0.85rem;
   border-radius: 10px;
   border: 1px solid rgba(203, 213, 225, 0.6);
-  background-color: rgba(248, 250, 252, 0.9);
+  background: linear-gradient(160deg, rgba(248, 250, 252, 0.92), rgba(248, 250, 252, 0.76));
   color: #1f2937;
   font-weight: 600;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
 }
 
 input,
@@ -203,8 +204,9 @@ select {
   padding: 0.65rem 0.75rem;
   border-radius: 8px;
   border: 1px solid rgba(203, 213, 225, 0.6);
-  background-color: rgba(248, 250, 252, 0.88);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: linear-gradient(140deg, rgba(248, 250, 252, 0.92), rgba(248, 250, 252, 0.78));
+  backdrop-filter: blur(8px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 input:focus,
@@ -256,13 +258,14 @@ button.secondary {
 }
 
 .result-card {
-  margin-top: 2rem;
-  background: white;
-  border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  padding: 1.75rem;
-  box-shadow: 0 24px 50px -30px rgba(15, 23, 42, 0.25);
-  color: #0f172a;
+  margin-top: 2.2rem;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 2rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 28px 60px -32px rgba(15, 23, 42, 0.5);
+  color: #f1f5f9;
 }
 
 .result-card h2 {
@@ -277,18 +280,19 @@ button.secondary {
 }
 
 .result-entry {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
+  background: rgba(241, 245, 249, 0.08);
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .result-entry h3 {
   margin: 0 0 0.25rem;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #475569;
+  color: #e2e8f0;
 }
 
 .result-entry p {
@@ -309,17 +313,29 @@ button.secondary {
 .disclaimer {
   margin-top: 2rem;
   font-size: 0.85rem;
-  color: #475569;
+  color: #e2e8f0;
   line-height: 1.5;
 }
 
 @media (max-width: 600px) {
+  .container {
+    padding: 2.2rem 1.1rem 2.4rem;
+  }
+
   form {
-    padding: 1.25rem;
+    padding: 1.4rem;
   }
 
   .card-inputs {
     flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .card-inputs select,
+  .card-inputs select:last-child,
+  .mode-select {
+    width: 100%;
+    min-width: 100%;
   }
 
   .actions {
@@ -329,5 +345,13 @@ button.secondary {
   button {
     width: 100%;
     justify-content: center;
+  }
+
+  .result-card {
+    padding: 1.6rem 1.3rem;
+  }
+
+  .result-grid {
+    grid-template-columns: 1fr;
   }
 }
