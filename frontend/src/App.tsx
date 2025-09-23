@@ -22,13 +22,18 @@ interface EvaluationResponse {
 }
 
 const SUITS = [
-  { label: '♠ 黑桃', value: 's', symbol: '♠', color: 'black' as const },
-  { label: '♥ 红桃', value: 'h', symbol: '♥', color: 'red' as const },
-  { label: '♦ 方片', value: 'd', symbol: '♦', color: 'red' as const },
-  { label: '♣ 梅花', value: 'c', symbol: '♣', color: 'black' as const }
+  { label: '♠️ 黑桃', value: 's', symbol: '♠', color: 'black' as const },
+  { label: '♥️ 红桃', value: 'h', symbol: '♥', color: 'red' as const },
+  { label: '♦️ 方片', value: 'd', symbol: '♦', color: 'red' as const },
+  { label: '♣️ 梅花', value: 'c', symbol: '♣', color: 'black' as const }
 ];
 
 const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+
+const SOLVER_OPTIONS: Array<{ value: 'solver' | 'heuristic'; label: string }> = [
+  { value: 'solver', label: 'Solver' },
+  { value: 'heuristic', label: 'Heuristic (Chen)' }
+];
 
 export default function App() {
   const [card1Rank, setCard1Rank] = useState('A');
@@ -59,8 +64,8 @@ export default function App() {
     const url = new URL('/preflop', API_BASE_URL);
     url.searchParams.set('cards', cardCombo);
     url.searchParams.set('players', players.toString());
-    if (mode) url.searchParams.set('mode', mode);
-    if (timeoutMs) url.searchParams.set('timeoutMs', timeoutMs.toString());
+    url.searchParams.set('mode', mode);
+    url.searchParams.set('timeoutMs', timeoutMs.toString());
     return url.toString();
   }, [cardCombo, players, mode, timeoutMs]);
 
@@ -155,7 +160,7 @@ export default function App() {
               left: `${card.left}%`,
               animationDelay: `${card.delay}s`,
               animationDuration: `${card.duration}s`,
-              ['--card-scale' as any]: card.scale
+              transform: `rotate(-18deg) scale(${card.scale})`
             }}
           >
             <div className="card-face">
@@ -191,8 +196,11 @@ export default function App() {
               value={mode}
               onChange={(event) => setMode(event.target.value as 'solver' | 'heuristic')}
             >
-              <option value="solver">Solver</option>
-              <option value="heuristic">Heuristic (Chen)</option>
+              {SOLVER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 
