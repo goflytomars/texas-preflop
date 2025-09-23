@@ -22,10 +22,10 @@ interface EvaluationResponse {
 }
 
 const SUITS = [
-  { label: '♠️ 黑桃', value: 's' },
-  { label: '♥️ 红桃', value: 'h' },
-  { label: '♦️ 方片', value: 'd' },
-  { label: '♣️ 梅花', value: 'c' }
+  { label: '♠ 黑桃', value: 's', symbol: '♠', color: 'black' as const },
+  { label: '♥ 红桃', value: 'h', symbol: '♥', color: 'red' as const },
+  { label: '♦ 方片', value: 'd', symbol: '♦', color: 'red' as const },
+  { label: '♣ 梅花', value: 'c', symbol: '♣', color: 'black' as const }
 ];
 
 const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
@@ -44,6 +44,17 @@ export default function App() {
   const timeoutMs = 800;
   const mode = 'solver';
 
+  type DeckCard = {
+    id: string;
+    rank: string;
+    suitSymbol: string;
+    colorClass: 'red' | 'black';
+    left: number;
+    delay: number;
+    duration: number;
+    scale: number;
+  };
+
   const formattedApiUrl = useMemo(() => {
     const url = new URL('/preflop', API_BASE_URL);
     url.searchParams.set('cards', cardCombo);
@@ -52,6 +63,29 @@ export default function App() {
     if (timeoutMs) url.searchParams.set('timeoutMs', timeoutMs.toString());
     return url.toString();
   }, [cardCombo, players, mode, timeoutMs]);
+
+  const cardRain = useMemo<DeckCard[]>(() => {
+    const deck: DeckCard[] = [];
+    SUITS.forEach((suit, suitIndex) => {
+      RANKS.forEach((rank, rankIndex) => {
+        const left = ((rankIndex * 7 + suitIndex * 13) % 120) - 10;
+        const delay = ((rankIndex * 0.5 + suitIndex * 0.8) % 12);
+        const duration = 14 + ((rankIndex + suitIndex) % 6) * 2;
+        const scale = 0.85 + ((rankIndex % 4) * 0.04);
+        deck.push({
+          id: `${rank}${suit.value}`,
+          rank,
+          suitSymbol: suit.symbol,
+          colorClass: suit.color,
+          left,
+          delay,
+          duration,
+          scale
+        });
+      });
+    });
+    return deck;
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -112,10 +146,24 @@ export default function App() {
 
   return (
     <div className="page-wrapper">
-      <div className="floating-cards" aria-hidden="true">
-        <div className="card-cloud" />
-        <div className="card-cloud delay-1" />
-        <div className="card-cloud delay-2" />
+      <div className="card-rain" aria-hidden="true">
+        {cardRain.map((card) => (
+          <div
+            key={card.id}
+            className={`card-floating card-${card.colorClass}`}
+            style={{
+              left: `${card.left}%`,
+              animationDelay: `${card.delay}s`,
+              animationDuration: `${card.duration}s`,
+              ['--card-scale' as any]: card.scale
+            }}
+          >
+            <div className="card-face">
+              <span className="card-rank">{card.rank}</span>
+              <span className="card-suit">{card.suitSymbol}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="container">
@@ -136,10 +184,10 @@ export default function App() {
               </div>
             </div>
 
-            <div>
-              <label>求解模式</label>
-              <div className="mode-selector">求解器</div>
-            </div>
+          <div>
+            <label>求解模式</label>
+            <div className="mode-selector">求解器</div>
+          </div>
           </div>
 
           <div className="actions">
