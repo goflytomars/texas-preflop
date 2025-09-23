@@ -35,6 +35,7 @@ export default function App() {
   const [card1Suit, setCard1Suit] = useState('s');
   const [card2Rank, setCard2Rank] = useState('A');
   const [card2Suit, setCard2Suit] = useState('d');
+  const [mode, setMode] = useState<'solver' | 'heuristic'>('solver');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EvaluationResponse | null>(null);
@@ -42,7 +43,6 @@ export default function App() {
   const cardCombo = useMemo(() => `${card1Rank}${card1Suit},${card2Rank}${card2Suit}`, [card1Rank, card1Suit, card2Rank, card2Suit]);
   const players = 6;
   const timeoutMs = 800;
-  const mode = 'solver';
 
   type DeckCard = {
     id: string;
@@ -66,17 +66,14 @@ export default function App() {
 
   const cardRain = useMemo<DeckCard[]>(() => {
     const deck: DeckCard[] = [];
-    const horizontalSpacing = 100 / (RANKS.length * SUITS.length);
-    let currentLeft = -8;
+    const baseSpacing = 100 / RANKS.length;
 
     SUITS.forEach((suit, suitIndex) => {
       RANKS.forEach((rank, rankIndex) => {
-        currentLeft += horizontalSpacing;
-        const left = currentLeft;
-
-        const delay = Math.random() * 6 + suitIndex * 0.5;
-        const duration = Math.random() * 6 + 18;
-        const scale = 0.85 + Math.random() * 0.25;
+        const left = rankIndex * baseSpacing + suitIndex * (baseSpacing / 4) - 10;
+        const delay = (rankIndex * 1.2 + suitIndex * 2) % 28;
+        const duration = 32;
+        const scale = 0.9 + suitIndex * 0.05;
 
         deck.push({
           id: `${rank}${suit.value}`,
@@ -181,19 +178,25 @@ export default function App() {
         </header>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-grid">
-            <div>
-              <label>起手牌</label>
-              <div className="card-grid">
-                {renderCardSelector('第一张牌', card1Rank, card1Suit, setCard1Rank, setCard1Suit)}
-                {renderCardSelector('第二张牌', card2Rank, card2Suit, setCard2Rank, setCard2Suit)}
-              </div>
+          <div className="form-section">
+            <label>起手牌</label>
+            <div className="card-grid">
+              {renderCardSelector('第一张牌', card1Rank, card1Suit, setCard1Rank, setCard1Suit)}
+              {renderCardSelector('第二张牌', card2Rank, card2Suit, setCard2Rank, setCard2Suit)}
             </div>
-
-          <div>
-            <label>求解模式</label>
-            <div className="mode-selector">求解器</div>
           </div>
+
+          <div className="form-section">
+            <label htmlFor="mode">求解模式</label>
+            <select
+              id="mode"
+              className="mode-select"
+              value={mode}
+              onChange={(event) => setMode(event.target.value as 'solver' | 'heuristic')}
+            >
+              <option value="solver">Solver</option>
+              <option value="heuristic">Heuristic (Chen)</option>
+            </select>
           </div>
 
           <div className="actions">
