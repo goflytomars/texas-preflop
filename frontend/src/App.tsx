@@ -79,7 +79,7 @@ const cardRain = useMemo<DeckCard[]>(() => {
   RANKS.forEach((rank, column) => {
     SUITS.forEach((suit, row) => {
       const base = ((column + 0.5) / columns) * 100;
-      const offset = (row - (rows - 1) / 2) * (100 / columns) * 0.12;
+      const offset = (row - (rows - 1) / 2) * (100 / columns) * 0.08;
       const left = base + offset - 12;
       deck.push({
         id: `${rank}${suit.value}`,
