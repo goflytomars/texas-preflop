@@ -49,16 +49,15 @@ export default function App() {
   const players = 6;
   const timeoutMs = 800;
 
-  type DeckCard = {
-    id: string;
-    rank: string;
-    suitSymbol: string;
-    colorClass: 'red' | 'black';
-    left: number;
-    delay: number;
-    duration: number;
-    scale: number;
-  };
+type DeckCard = {
+  id: string;
+  rank: string;
+  suitSymbol: string;
+  colorClass: 'red' | 'black';
+  left: number;
+  delay: number;
+  duration: number;
+};
 
   const formattedApiUrl = useMemo(() => {
     const url = new URL('/preflop', API_BASE_URL);
@@ -69,28 +68,27 @@ export default function App() {
     return url.toString();
   }, [cardCombo, players, mode, timeoutMs]);
 
-  const cardRain = useMemo<DeckCard[]>(() => {
-    const deck: DeckCard[] = [];
+const cardRain = useMemo<DeckCard[]>(() => {
+  const deck: DeckCard[] = [];
+  const baseSpacing = 100 / RANKS.length;
+  RANKS.forEach((rank, rankIndex) => {
     SUITS.forEach((suit, suitIndex) => {
-      RANKS.forEach((rank, rankIndex) => {
-        const left = ((rankIndex * 7 + suitIndex * 13) % 120) - 10;
-        const delay = ((rankIndex * 0.5 + suitIndex * 0.8) % 12);
-        const duration = 14 + ((rankIndex + suitIndex) % 6) * 2;
-        const scale = 0.85 + ((rankIndex % 4) * 0.04);
-        deck.push({
-          id: `${rank}${suit.value}`,
-          rank,
-          suitSymbol: suit.symbol,
-          colorClass: suit.color,
-          left,
-          delay,
-          duration,
-          scale
-        });
+      const left = rankIndex * baseSpacing + suitIndex * (baseSpacing / 4) - 8;
+      const delay = (rankIndex * 2 + suitIndex * 3) % 36;
+      const duration = 36;
+      deck.push({
+        id: `${rank}${suit.value}`,
+        rank,
+        suitSymbol: suit.symbol,
+        colorClass: suit.color,
+        left,
+        delay,
+        duration
       });
     });
-    return deck;
-  }, []);
+  });
+  return deck;
+}, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -159,8 +157,7 @@ export default function App() {
             style={{
               left: `${card.left}%`,
               animationDelay: `${card.delay}s`,
-              animationDuration: `${card.duration}s`,
-              transform: `rotate(-18deg) scale(${card.scale})`
+              animationDuration: `${card.duration}s`
             }}
           >
             <div className="card-face">
