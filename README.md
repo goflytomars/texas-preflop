@@ -110,3 +110,27 @@ and print the raw solver statistics, which is useful for verifying connectivity 
 3. 部署完成后记下 Render 分配的 URL（例如 `https://preflop-solver.onrender.com`）。
 4. 回到主服务（Texas Preflop API）的环境变量配置，将 `SOLVER_BASE_URL` 设置为该 URL（无需结尾 `/v1/...`）。
 5. 保存后主服务会自动重启，此时访问 `/preflop` 将直接调用真实求解器，`method` 字段会显示 `solver:v1`。
+
+## Frontend (React)
+
+项目包含一个位于 `frontend/` 的 Vite + React 前端，可用于与 API 交互。
+
+### 本地运行
+
+```bash
+cd frontend
+npm install
+# 可选：配置 API 地址（默认 https://your-preflop-service.onrender.com）
+echo "VITE_API_BASE_URL=https://<your-render-main-service>" > .env.local
+npm run dev
+```
+
+启动后访问 `http://localhost:5173`，输入起手牌与玩家数即可调用 `/preflop` 接口。
+
+### Render 上部署前端
+
+1. 在 Render 新建 **Static Site**，选择本仓库（分支 `main`）。
+2. Build Command：`npm --prefix frontend install && npm --prefix frontend run build`
+3. Publish Directory：`frontend/dist`
+4. 在 **Environment Variables** 中配置 `VITE_API_BASE_URL=https://<your-main-service>`。
+5. 部署完成后即可得到对外访问的 UI。
