@@ -73,14 +73,13 @@ const cardRain = useMemo<DeckCard[]>(() => {
   const columns = RANKS.length;
   const rows = SUITS.length;
   const totalCards = columns * rows;
-  const duration = 44;
+  const duration = 48;
   const delayStep = duration / totalCards;
 
   RANKS.forEach((rank, column) => {
     SUITS.forEach((suit, row) => {
-      const index = row * columns + column;
       const base = ((column + 0.5) / columns) * 100;
-      const offset = (row - (rows - 1) / 2) * (100 / columns) * 0.35;
+      const offset = (row - (rows - 1) / 2) * (100 / columns) * 0.12;
       const left = base + offset - 12;
       deck.push({
         id: `${rank}${suit.value}`,
@@ -88,12 +87,21 @@ const cardRain = useMemo<DeckCard[]>(() => {
         suitSymbol: suit.symbol,
         colorClass: suit.color,
         left,
-        delay: index * delayStep,
+        delay: 0,
         duration
       });
     });
   });
-  return deck;
+
+  for (let i = deck.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+
+  return deck.map((card, index) => ({
+    ...card,
+    delay: index * delayStep
+  }));
 }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
