@@ -111,79 +111,92 @@ export default function App() {
   );
 
   return (
-    <div className="container">
-      <header>
-        <h1>
-          Born to be the <span className="highlight-king">King</span> of Teas
-        </h1>
-        <p className="subtitle">I’ll help you keep winning—winning all the way to Mars.</p>
-      </header>
+    <div className="page-wrapper">
+      <div className="floating-cards" aria-hidden="true">
+        <div className="card-cloud" />
+        <div className="card-cloud delay-1" />
+        <div className="card-cloud delay-2" />
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-grid">
-          <div>
-            <label>起手牌</label>
-            <div className="card-grid">
-              {renderCardSelector('第一张牌', card1Rank, card1Suit, setCard1Rank, setCard1Suit)}
-              {renderCardSelector('第二张牌', card2Rank, card2Suit, setCard2Rank, setCard2Suit)}
-            </div>
-          </div>
-        </div>
+      <div className="container">
+        <header>
+          <h1>
+            Born to be the <span className="highlight-king">King</span> of Texas
+          </h1>
+          <p className="subtitle">I’ll help you keep winning—winning all the way to Mars.</p>
+        </header>
 
-        <div className="actions">
-          <button type="submit" className="primary" disabled={loading}>
-            {loading ? '计算中…' : '计算策略'}
-          </button>
-          <button type="button" className="secondary" onClick={clearResult}>
-            清除结果
-          </button>
-        </div>
-
-        <div className="status">API 入口：{API_BASE_URL}</div>
-      </form>
-
-      {error && <div className="alert">{error}</div>}
-
-      {result && (
-        <section className="result-card">
-          <h2>评估结果</h2>
-          <div className="result-grid">
-            <div className="result-entry">
-              <h3>推荐策略</h3>
-              <p>{result.recommendation.toUpperCase()}</p>
-            </div>
-            <div className="result-entry">
-              <h3>胜率</h3>
-              <p>{(result.winProbability * 100).toFixed(2)}%</p>
-            </div>
-            <div className="result-entry">
-              <h3>期望收益 (EV)</h3>
-              <p>{result.expectedValueBb.toFixed(2)} bb</p>
-            </div>
-            <div className="result-entry">
-              <h3>置信度</h3>
-              <p>{(result.confidence * 100).toFixed(1)}%</p>
-            </div>
-            <div className="result-entry">
-              <h3>使用方法</h3>
-              <p>{result.method}</p>
-            </div>
-            <div className="result-entry">
-              <h3>求解耗时</h3>
-              <p>{result.solverLatencyMs} ms</p>
-            </div>
-          </div>
-
-          <div className="disclaimer">
-            <strong>提示：</strong> {result.tips}
-            {result.fallback && (
-              <div style={{ marginTop: '0.75rem', color: '#b91c1c' }}>
-                当前结果来自 fallback ({result.fallback.reason})，请检查求解器状态。
+        <form onSubmit={handleSubmit}>
+          <div className="form-grid">
+            <div>
+              <label>起手牌</label>
+              <div className="card-grid">
+                {renderCardSelector('第一张牌', card1Rank, card1Suit, setCard1Rank, setCard1Suit)}
+                {renderCardSelector('第二张牌', card2Rank, card2Suit, setCard2Rank, setCard2Suit)}
               </div>
-            )}
+            </div>
+
+            <div>
+              <label>求解模式</label>
+              <div className="mode-selector">求解器</div>
+            </div>
           </div>
-        </section>
-      )}
+
+          <div className="actions">
+            <button type="submit" className="primary" disabled={loading}>
+              {loading ? '计算中…' : '计算策略'}
+            </button>
+            <button type="button" className="secondary" onClick={clearResult}>
+              清除结果
+            </button>
+          </div>
+
+          <div className="status">API 入口：{API_BASE_URL}</div>
+        </form>
+
+        {error && <div className="alert">{error}</div>}
+
+        {result && (
+          <section className="result-card">
+            <h2>评估结果</h2>
+            <div className="result-grid">
+              <div className="result-entry">
+                <h3>推荐策略</h3>
+                <p>{result.recommendation.toUpperCase()}</p>
+              </div>
+              <div className="result-entry">
+                <h3>胜率</h3>
+                <p>{(result.winProbability * 100).toFixed(2)}%</p>
+              </div>
+              <div className="result-entry">
+                <h3>期望收益 (EV)</h3>
+                <p>{result.expectedValueBb.toFixed(2)} bb</p>
+              </div>
+              <div className="result-entry">
+                <h3>置信度</h3>
+                <p>{(result.confidence * 100).toFixed(1)}%</p>
+              </div>
+              <div className="result-entry">
+                <h3>使用方法</h3>
+                <p>{result.method}</p>
+              </div>
+              <div className="result-entry">
+                <h3>求解耗时</h3>
+                <p>{result.solverLatencyMs} ms</p>
+              </div>
+            </div>
+
+            <div className="disclaimer">
+              <strong>提示：</strong> {result.tips}
+              {result.fallback && (
+                <div style={{ marginTop: '0.75rem', color: '#b91c1c' }}>
+                  当前结果来自 fallback ({result.fallback.reason})，请检查求解器状态。
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

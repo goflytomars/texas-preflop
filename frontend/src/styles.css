@@ -7,8 +7,11 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #111827 100%);
+  background: radial-gradient(circle at top, rgba(99, 102, 241, 0.2), transparent 60%),
+    linear-gradient(135deg, #0f172a 0%, #1f2937 45%, #0b1120 100%);
   color: #e2e8f0;
+  position: relative;
+  overflow-x: hidden;
 }
 
 a {
@@ -17,6 +20,52 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+.page-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+.floating-cards {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.card-cloud {
+  position: absolute;
+  top: -120px;
+  left: -200px;
+  width: 120%;
+  height: 220px;
+  background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="220" viewBox="0 0 600 220" fill="none"%3E%3Cg opacity="0.15"%3E%3Crect x="10" y="10" width="160" height="220" rx="14" transform="rotate(-45 10 10)" fill="%23dbeafe"/%3E%3Crect x="210" y="40" width="160" height="220" rx="14" transform="rotate(-45 210 40)" fill="%23bfdbfe"/%3E%3Crect x="410" y="-10" width="160" height="220" rx="14" transform="rotate(-45 410 -10)" fill="%2394a3b8"/%3E%3C/g%3E%3C/svg%3E');
+  background-repeat: repeat-x;
+  animation: floatCards 18s linear infinite;
+  transform: rotate(-18deg);
+}
+
+.card-cloud.delay-1 {
+  top: 140px;
+  animation-duration: 22s;
+  opacity: 0.6;
+}
+
+.card-cloud.delay-2 {
+  top: 320px;
+  animation-duration: 26s;
+  opacity: 0.45;
+}
+
+@keyframes floatCards {
+  0% {
+    transform: translateX(0) rotate(-18deg);
+  }
+  100% {
+    transform: translateX(-25%) rotate(-18deg);
+  }
 }
 
 .highlight-king {
@@ -37,6 +86,8 @@ a {
   max-width: 760px;
   margin: 0 auto;
   padding: 3rem 1.5rem 3.5rem;
+  position: relative;
+  z-index: 2;
 }
 
 header {
