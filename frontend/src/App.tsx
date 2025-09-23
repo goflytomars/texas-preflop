@@ -21,13 +21,22 @@ interface EvaluationResponse {
   score: number | null;
 }
 
-const PRESET_HANDS: Array<{ label: string; value: string }> = [
-  { label: 'AA (As,Ad)', value: 'As,Ad' },
-  { label: 'KK (Kh,Kc)', value: 'Kh,Kc' },
-  { label: 'AKs (As,Ks)', value: 'As,Ks' },
-  { label: 'AJs (Ad,Jd)', value: 'Ad,Jd' },
-  { label: '76s (7h,6h)', value: '7h,6h' },
-  { label: '72o (7h,2c)', value: '7h,2c' }
+const SUITS = [
+  { label: '♠️ 黑桃 (s)', value: 's' },
+  { label: '♥️ 红桃 (h)', value: 'h' },
+  { label: '♦️ 方片 (d)', value: 'd' },
+  { label: '♣️ 梅花 (c)', value: 'c' }
+];
+
+const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+
+const PRESET_HANDS: Array<{ label: string; cards: [string, string] }> = [
+  { label: 'AA (As,Ad)', cards: ['As', 'Ad'] },
+  { label: 'KK (Kh,Kc)', cards: ['Kh', 'Kc'] },
+  { label: 'AKs (As,Ks)', cards: ['As', 'Ks'] },
+  { label: 'AJs (Ad,Jd)', cards: ['Ad', 'Jd'] },
+  { label: '76s (7h,6h)', cards: ['7h', '6h'] },
+  { label: '72o (7h,2c)', cards: ['7h', '2c'] }
 ];
 
 const modes = [
@@ -36,25 +45,35 @@ const modes = [
 ];
 
 export default function App() {
-  const [cards, setCards] = useState('As,Ad');
-  const [players, setPlayers] = useState(6);
+  const [card1Rank, setCard1Rank] = useState('A');
+  const [card1Suit, setCard1Suit] = useState('s');
+  const [card2Rank, setCard2Rank] = useState('A');
+  const [card2Suit, setCard2Suit] = useState('d');
   const [mode, setMode] = useState('solver');
-  const [timeoutMs, setTimeoutMs] = useState(800);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EvaluationResponse | null>(null);
 
+  const cardCombo = useMemo(() => `${card1Rank}${card1Suit},${card2Rank}${card2Suit}`, [card1Rank, card1Suit, card2Rank, card2Suit]);
+  const players = 6;
+  const timeoutMs = 800;
+
   const formattedApiUrl = useMemo(() => {
     const url = new URL('/preflop', API_BASE_URL);
-    url.searchParams.set('cards', cards);
+    url.searchParams.set('cards', cardCombo);
     url.searchParams.set('players', players.toString());
     if (mode) url.searchParams.set('mode', mode);
     if (timeoutMs) url.searchParams.set('timeoutMs', timeoutMs.toString());
     return url.toString();
-  }, [cards, players, mode, timeoutMs]);
+  }, [cardCombo, players, mode, timeoutMs]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (card1Rank === card2Rank && card1Suit === card2Suit) {
+      setError('两张牌不能完全相同，请重新选择。');
+      setResult(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     setResult(null);
@@ -78,14 +97,40 @@ export default function App() {
     }
   };
 
-  const handlePreset = (value: string) => {
-    setCards(value);
+  const handlePreset = (cards: [string, string]) => {
+    const [first, second] = cards;
+    setCard1Rank(first[0]);
+    setCard1Suit(first[1]);
+    setCard2Rank(second[0]);
+    setCard2Suit(second[1]);
   };
 
   const clearResult = () => {
     setResult(null);
     setError(null);
   };
+
+  const renderCardSelector = (label: string, rank: string, suit: string, setRank: (value: string) => void, setSuit: (value: string) => void) => (
+    <div className="card-selector">
+      <label>{label}</label>
+      <div className="card-inputs">
+        <select value={rank} onChange={(event) => setRank(event.target.value)}>
+          {RANKS.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+        <select value={suit} onChange={(event) => setSuit(event.target.value)}>
+          {SUITS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
 
   return (
     <div className="container">
@@ -99,41 +144,24 @@ export default function App() {
       <form onSubmit={handleSubmit}>
         <div className="form-grid">
           <div>
-            <label htmlFor="cards">起手牌 (例如 As,Ad)</label>
-            <input
-              id="cards"
-              name="cards"
-              value={cards}
-              onChange={(event) => setCards(event.target.value.trim())}
-              placeholder="例如 As,Ad"
-              required
-            />
+            <label>起手牌</label>
+            <div className="card-grid">
+              {renderCardSelector('第一张牌', card1Rank, card1Suit, setCard1Rank, setCard1Suit)}
+              {renderCardSelector('第二张牌', card2Rank, card2Suit, setCard2Rank, setCard2Suit)}
+            </div>
             <div className="preset-actions" style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               {PRESET_HANDS.map((preset) => (
                 <button
                   type="button"
-                  key={preset.value}
+                  key={preset.label}
                   className="secondary"
                   style={{ padding: '0.45rem 0.9rem', fontSize: '0.85rem' }}
-                  onClick={() => handlePreset(preset.value)}
+                  onClick={() => handlePreset(preset.cards)}
                 >
                   {preset.label}
                 </button>
               ))}
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="players">玩家数</label>
-            <input
-              id="players"
-              name="players"
-              type="number"
-              min={2}
-              max={10}
-              value={players}
-              onChange={(event) => setPlayers(Number(event.target.value))}
-            />
           </div>
 
           <div>
@@ -145,20 +173,6 @@ export default function App() {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label htmlFor="timeout">求解器超时 (ms)</label>
-            <input
-              id="timeout"
-              name="timeout"
-              type="number"
-              min={200}
-              max={5000}
-              step={100}
-              value={timeoutMs}
-              onChange={(event) => setTimeoutMs(Number(event.target.value))}
-            />
           </div>
         </div>
 
