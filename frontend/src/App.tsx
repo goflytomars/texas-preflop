@@ -66,18 +66,12 @@ export default function App() {
 
   const cardRain = useMemo<DeckCard[]>(() => {
     const deck: DeckCard[] = [];
-    const horizontalSpacing = 100 / (RANKS.length * SUITS.length);
-    let currentLeft = -8;
-
     SUITS.forEach((suit, suitIndex) => {
       RANKS.forEach((rank, rankIndex) => {
-        currentLeft += horizontalSpacing;
-        const left = currentLeft;
-
-        const delay = Math.random() * 6 + suitIndex * 0.5;
-        const duration = Math.random() * 6 + 18;
-        const scale = 0.85 + Math.random() * 0.25;
-
+        const left = ((rankIndex * 7 + suitIndex * 13) % 120) - 10;
+        const delay = ((rankIndex * 0.5 + suitIndex * 0.8) % 12);
+        const duration = 14 + ((rankIndex + suitIndex) % 6) * 2;
+        const scale = 0.85 + ((rankIndex % 4) * 0.04);
         deck.push({
           id: `${rank}${suit.value}`,
           rank,
